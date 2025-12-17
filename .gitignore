@@ -1,8 +1,51 @@
-input/*
-output/*
-node_modules/*
+# --- App data / local assets ---
+input/
+output/
+
+# --- Rust / Cargo ---
+target/
+**/target/
+**/*.rs.bk
+Cargo.lock.msrv
+
+# --- Node / frontend ---
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+.turbo/
+.parcel-cache/
+.vite/
+dist/
+build/
+out/
+
+# --- Tauri (common generated artifacts) ---
+src-tauri/gen/
+src-tauri/.tauri/
+
+# --- Environment files / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS / Editor ---
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Icon?
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.history/
 
-# Added by cargo
-
-/target
+# --- Logs ---
+*.log
