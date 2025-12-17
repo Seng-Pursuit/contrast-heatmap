@@ -1,0 +1,11 @@
+{
+  "name": "contrast-heatmap-ui",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.0.0"
+  }
+}
+
+

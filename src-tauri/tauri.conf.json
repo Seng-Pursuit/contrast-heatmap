@@ -1,0 +1,29 @@
+{
+  "productName": "Contrast Heatmap",
+  "version": "0.1.0",
+  "identifier": "com.contrastheatmap.app",
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "devUrl": null,
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Contrast Heatmap",
+        "width": 900,
+        "height": 720,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}
+
+

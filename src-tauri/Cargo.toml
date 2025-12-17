@@ -1,0 +1,21 @@
+[package]
+name = "contrast-heatmap-tauri"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+anyhow = "1.0.100"
+base64 = "0.22.1"
+serde = { version = "1.0.218", features = ["derive"] }
+tauri = "2.8.5"
+tauri-plugin-dialog = "2.4.0"
+
+# Reuse the existing algorithm crate
+contrast-heatmap = { path = ".." }
+
+[build-dependencies]
+tauri-build = "2.4.1"
+image = "0.25.9"
+
+

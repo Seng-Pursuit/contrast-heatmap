@@ -22,3 +22,28 @@ Run `cargo install --path . --force`
 4. Run the command
  
 Run `contrast-heatmap --input "whateverfolder/path-to-your-image.png"`
+
+## Tauri app (GUI)
+
+This repo now contains:
+- **CLI**: `src/main.rs`
+- **Reusable core**: `src/lib.rs` (heatmap algorithm)
+- **Tauri app**: `src-tauri/` (Rust backend) + `ui/` (frontend)
+
+### Run the GUI (dev)
+
+From the repo root:
+
+```bash
+cd ui
+npm install
+
+cd ..
+cargo tauri dev --manifest-path src-tauri/Cargo.toml
+```
+
+### What the GUI does
+
+- **Upload / choose file**: via the native dialog plugin (gives a real filesystem path)
+- **Generate heatmap**: calls the Tauri command `generate_heatmap_base64_png`
+- **Display image**: renders the returned base64 PNG under the upload area
