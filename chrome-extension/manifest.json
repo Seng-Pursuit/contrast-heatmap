@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Contrast Heatmap",
+  "version": "0.1.0",
+  "description": "Capture full-page screenshots, send to local Contrast Heatmap server, and view the heatmap result.",
+  "action": {
+    "default_title": "Generate contrast heatmap for this page",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting", "tabs", "offscreen"],
+  "host_permissions": ["http://127.0.0.1:59212/*", "http://localhost:59212/*"],
+  "background": {
+    "service_worker": "service_worker.js",
+    "type": "module"
+  },
+  "offscreen_documents": [
+    {
+      "url": "offscreen.html",
+      "reasons": ["DOM_SCRAPING"],
+      "justification": "Stitch multiple viewport screenshots into a full-page PNG via canvas."
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html", "popup.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
+

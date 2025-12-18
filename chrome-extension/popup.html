@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contrast Heatmap</title>
+    <style>
+      body {
+        margin: 0;
+        width: 340px;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: #0b0d10;
+        color: rgba(255, 255, 255, 0.92);
+      }
+      .wrap {
+        padding: 12px;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 8px;
+      }
+      .status {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.72);
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        white-space: pre-wrap;
+        min-height: 44px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      button {
+        flex: 1;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: rgba(234, 14, 14, 0.6);
+        background: rgba(234, 14, 14, 0.18);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .hint {
+        margin-top: 10px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.56);
+        line-height: 1.35;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Contrast Heatmap</h1>
+      <div id="status" class="status">Checking local server…</div>
+      <div class="row">
+        <button id="captureBtn" class="primary" disabled>Capture and analyse</button>
+      </div>
+      <div class="hint">
+        Requires the Tauri app running (local server on <code>127.0.0.1:59212</code>).
+      </div>
+    </div>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>
+
+

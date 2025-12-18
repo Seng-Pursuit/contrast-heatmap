@@ -1,24 +1,59 @@
 # Contrast-heatmap
-An experiment with jimp to run px-by-px contrast ratio calculations, in order to generate a heatmap of contrast invalidation. 
 
 Written in Rust based on Libby's original JS implementation.
 
-# How to use
+Generate a “low-contrast heatmap” overlay for images (Rust). Includes:
+- **CLI** (`contrast-heatmap`)
+- **Desktop app** (Tauri + Preact UI)
+- **Local HTTP server** (for the Chrome extension)
+- **Chrome extension** (captures a page screenshot, sends to local server, opens the result)
 
-1. Install Rust
+## How to dev
 
-Go to https://rust-lang.org/tools/install/ to install rust using the `curl` command.
+### CLI
 
-Before you close the window, you need to add it to the path by running the command shown.
+This repo also ships a CLI tool:
 
-2. Build the cli tool
+Install:
+```base
+cargo install --path . --force
+```
 
-Run `cargo build --release`
+Usage
+```bash
+contrast-heatmap --input "path-to-your-image.png"
+```
 
-3. Install the cli tool on your local
+### Desktop app + Chrome extension
 
-Run `cargo install --path . --force`
+1. Start the Tauri app (this also starts the local server):
 
-4. Run the command
- 
-Run `contrast-heatmap --input "whateverfolder/path-to-your-image.png"`
+```bash
+cd src-tauri
+cargo install tauri-cli --locked
+cargo tauri dev
+```
+
+2. Load the extension:
+- Open `chrome://extensions`
+- Enable **Developer mode**
+- Click **Load unpacked**
+- Select: `contrast-heatmap/chrome-extension`
+
+3. Use it:
+- Click the extension button
+- It captures a full-page screenshot, sends it to `http://127.0.0.1:59212/`, then opens a new tab with the heatmap result
+
+## Production build (macOS)
+
+From the repo root:
+
+```bash
+cd src-tauri
+cargo install tauri-cli --locked
+cargo tauri build
+```
+
+Build outputs:
+- **.app**: `src-tauri/target/release/bundle/macos/Contrast Heatmap.app`
+- **.dmg**: `src-tauri/target/release/bundle/dmg/Contrast Heatmap_0.1.0_aarch64.dmg` (name may vary by arch/version)
