@@ -17,9 +17,15 @@ function setBusy(busy) {
 }
 
 async function pickFileFromDialog() {
-  // In Tauri we can access the OS file path via the dialog plugin.
-  const { open } = await import("@tauri-apps/plugin-dialog");
-  const picked = await open({
+  // No-bundler setup: use Tauri's injected global instead of ESM imports.
+  const tauri = window.__TAURI__;
+  if (!tauri?.dialog?.open) {
+    throw new Error(
+      "Tauri dialog API not available. Make sure you're running via `cargo tauri dev` (not opening ui/index.html in a browser).",
+    );
+  }
+
+  const picked = await tauri.dialog.open({
     multiple: false,
     filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "bmp", "gif", "tif", "tiff"] }],
   });
@@ -28,7 +34,13 @@ async function pickFileFromDialog() {
 }
 
 async function invokeGenerate(inputPath) {
-  const { invoke } = await import("@tauri-apps/api/core");
+  const tauri = window.__TAURI__;
+  const invoke = tauri?.core?.invoke;
+  if (!invoke) {
+    throw new Error(
+      "Tauri invoke API not available. Make sure you're running via `cargo tauri dev` (not opening ui/index.html in a browser).",
+    );
+  }
   return invoke("generate_heatmap_base64_png", { inputPath });
 }
 

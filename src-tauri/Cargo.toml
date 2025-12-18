@@ -8,14 +8,14 @@ build = "build.rs"
 anyhow = "1.0.100"
 base64 = "0.22.1"
 serde = { version = "1.0.218", features = ["derive"] }
-tauri = "2.8.5"
+tauri = { version = "2.8.5", features = [] }
 tauri-plugin-dialog = "2.4.0"
 
 # Reuse the existing algorithm crate
 contrast-heatmap = { path = ".." }
 
 [build-dependencies]
-tauri-build = "2.4.1"
+tauri-build = { version = "2.4.1", features = [] }
 image = "0.25.9"
 
 
