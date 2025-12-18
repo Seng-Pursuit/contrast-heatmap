@@ -29,17 +29,35 @@ async fn get_root() -> impl IntoResponse {
 }
 
 async fn post_root(body: Bytes) -> impl IntoResponse {
-    match contrast_heatmap::generate_heatmap_png_from_encoded_bytes(&body, Default::default()) {
+    eprintln!("[contrast-heatmap] server: processing image ({} bytes)...", body.len());
+    let started = std::time::Instant::now();
+
+    let res = contrast_heatmap::generate_heatmap_png_from_encoded_bytes(&body, Default::default());
+
+    match res {
         Ok(png) => (
             StatusCode::OK,
             [("content-type", "image/png")],
-            png,
+            {
+                eprintln!(
+                    "[contrast-heatmap] server: done (ok) in {:?} ({} bytes out)",
+                    started.elapsed(),
+                    png.len()
+                );
+                png
+            },
         )
             .into_response(),
         Err(e) => (
             StatusCode::BAD_REQUEST,
             [("content-type", "text/plain; charset=utf-8")],
-            format!("failed to process image: {e}"),
+            {
+                eprintln!(
+                    "[contrast-heatmap] server: done (error) in {:?}: {e}",
+                    started.elapsed()
+                );
+                format!("failed to process image: {e}")
+            },
         )
             .into_response(),
     }
