@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'preact/hooks'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
+import './app.css'
 
 export function App() {
   const [filePath, setFilePath] = useState(null)
@@ -49,36 +50,32 @@ export function App() {
   }
 
   return (
-    <div class="min-h-full">
-      <div class="mx-auto max-w-5xl px-4 py-8">
-        <div class="flex items-end justify-between gap-4">
+    <div class="app">
+      <div class="container">
+        <div class="header">
           <div>
-            <div class="text-xl font-semibold tracking-tight">Contrast Heatmap</div>
-            <div class="mt-1 text-sm text-zinc-400">
-              Choose an image → generate heatmap → preview below
-            </div>
+            <div class="title">Contrast Heatmap</div>
+            <div class="subtitle">Choose an image → generate heatmap → preview below</div>
           </div>
-          <div class="text-xs text-zinc-500">localhost server: 127.0.0.1:59212</div>
+          <div class="meta">localhost server: 127.0.0.1:59212</div>
         </div>
 
-        <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="card">
+          <div class="cardTop">
             <div>
-              <div class="text-sm font-medium">Upload</div>
-              <div class="mt-1 text-xs text-zinc-400">
-                {filePath ? filePath : 'No file selected.'}
-              </div>
+              <div class="label">Upload</div>
+              <div class="path">{filePath ? filePath : 'No file selected.'}</div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="actions">
               <button
-                class="rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15"
+                class="btn"
                 onClick={chooseFile}
                 disabled={busy}
               >
                 Choose file
               </button>
               <button
-                class="rounded-xl border border-red-500/40 bg-red-500/20 px-4 py-2 text-sm font-semibold hover:bg-red-500/25 disabled:opacity-50"
+                class="btn primary"
                 onClick={run}
                 disabled={busy || !filePath}
               >
@@ -87,12 +84,12 @@ export function App() {
             </div>
           </div>
 
-          <div class="mt-3 text-sm text-zinc-400">{status}</div>
+          <div class="status">{status}</div>
 
           {outSrc ? (
-            <div class="mt-4 overflow-hidden rounded-xl border border-white/10 bg-black/20">
-              <div class="border-b border-white/10 px-3 py-2 text-xs text-zinc-400">Result</div>
-              <img src={outSrc} alt="Heatmap result" class="block w-full" />
+            <div class="result">
+              <div class="resultTitle">Result</div>
+              <img src={outSrc} alt="Heatmap result" />
             </div>
           ) : null}
         </div>

@@ -1,25 +1,128 @@
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.app {
+  min-height: 100%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 18px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
 }
-.logo.preact:hover {
-  filter: drop-shadow(0 0 2em #673ab8aa);
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .card {
-  padding: 2em;
+  margin-top: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 22px 80px rgba(0, 0, 0, 0.35);
 }
 
-.read-the-docs {
-  color: #888;
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.path {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 720px;
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  border-color: rgba(234, 14, 14, 0.55);
+  background: rgba(234, 14, 14, 0.18);
+}
+
+.btn.primary:hover {
+  background: rgba(234, 14, 14, 0.22);
+}
+
+.status {
+  margin-top: 12px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  min-height: 18px;
+}
+
+.result {
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.resultTitle {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.result img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
