@@ -156,18 +156,6 @@ async function sendToServer(pngDataUrl) {
   return data.url;
 }
 
-async function openViewerWithBlob(blob) {
-  const dataUrl = await blobToDataUrl(blob);
-  const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(dataUrl);
-  await chrome.tabs.create({ url });
-}
-
-async function openViewerWithText(message) {
-  const dataUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(message)}`;
-  const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(dataUrl);
-  await chrome.tabs.create({ url });
-}
-
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   (async () => {
     if (msg?.type === "CHECK_SERVER") {

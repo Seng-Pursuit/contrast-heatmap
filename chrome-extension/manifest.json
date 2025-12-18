@@ -22,7 +22,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html", "viewer.js", "popup.html", "popup.js"],
+      "resources": ["popup.html", "popup.js"],
       "matches": ["<all_urls>"]
     }
   ]
