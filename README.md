@@ -1,61 +1,75 @@
 # Contrast-heatmap
-An experiment with jimp to run px-by-px contrast ratio calculations, in order to generate a heatmap of contrast invalidation. 
 
-Written in Rust based on Libby's original JS implementation.
+Generate a “low-contrast heatmap” overlay for images (Rust). Includes:
+- **CLI** (`contrast-heatmap`)
+- **Desktop app** (Tauri + Preact UI)
+- **Local HTTP server** (for the Chrome extension)
+- **Chrome extension** (captures a page screenshot, sends to local server, opens the result)
 
-# How to use
+## How to use
 
-1. Install Rust
+### CLI
 
-Go to https://rust-lang.org/tools/install/ to install rust using the `curl` command.
+This repo also ships a CLI tool:
 
-Before you close the window, you need to add it to the path by running the command shown.
+```bash
+contrast-heatmap --input "path-to-your-image.png"
+```
 
-2. Build the cli tool
+### Desktop app + Chrome extension
 
-Run `cargo build --release`
+1. Start the Tauri app (this also starts the local server):
 
-3. Install the cli tool on your local
+```bash
+cargo install tauri-cli --locked
+cargo tauri dev -- --manifest-path src-tauri/Cargo.toml
+```
 
-Run `cargo install --path . --force`
+2. Load the extension:
+- Open `chrome://extensions`
+- Enable **Developer mode**
+- Click **Load unpacked**
+- Select: `contrast-heatmap/chrome-extension`
 
-4. Run the command
- 
-Run `contrast-heatmap --input "whateverfolder/path-to-your-image.png"`
+3. Use it:
+- Click the extension button
+- It captures a full-page screenshot, sends it to `http://127.0.0.1:59212/`, then opens a new tab with the heatmap result
 
-## Tauri app (GUI)
-
-This repo now contains:
-- **CLI**: `src/main.rs`
-- **Reusable core**: `src/lib.rs` (heatmap algorithm)
-- **Tauri app**: `src-tauri/` (Rust backend) + `ui/` (frontend)
-
-### Run the GUI (dev)
+## Production build (macOS)
 
 From the repo root:
 
 ```bash
 cd ui
 npm install
-
 cd ..
-cargo tauri dev --manifest-path src-tauri/Cargo.toml
+
+cargo install tauri-cli --locked
+cargo tauri build -- --manifest-path src-tauri/Cargo.toml
 ```
 
-### What the GUI does
+Build outputs:
+- **.app**: `src-tauri/target/release/bundle/macos/Contrast Heatmap.app`
+- **.dmg**: `src-tauri/target/release/bundle/dmg/Contrast Heatmap_0.1.0_aarch64.dmg` (name may vary by arch/version)
 
-- **Upload / choose file**: via the native dialog plugin (gives a real filesystem path)
-- **Generate heatmap**: calls the Tauri command `generate_heatmap_base64_png`
-- **Display image**: renders the returned base64 PNG under the upload area
+## Dev guide
 
-## Local HTTP server (for Chrome extension / integrations)
+### Tauri app (dev)
 
-When the Tauri app is running, it also starts a local web server:
+```bash
+cd ui
+npm install
+cd ..
 
-- `GET http://127.0.0.1:59212/` → returns `contrast-heatmap`
-- `POST http://127.0.0.1:59212/` → send an **image** in the request body (PNG/JPG/etc) and it returns a **PNG** with the heatmap overlay
+cargo install tauri-cli --locked
+cargo tauri dev -- --manifest-path src-tauri/Cargo.toml
+```
 
-Example:
+### Local HTTP server (for integrations)
+
+When the Tauri app is running, it also starts a server on `127.0.0.1:59212`:
+- `GET /` → returns `contrast-heatmap`
+- `POST /` → accepts an image body and returns a PNG with the heatmap overlay
 
 ```bash
 curl -s http://127.0.0.1:59212/
@@ -66,22 +80,3 @@ curl -s -X POST \
   http://127.0.0.1:59212/ \
   > output.png
 ```
-
-## Chrome extension
-
-The extension lives in `chrome-extension/`.
-
-### Load it in Chrome
-
-- Go to `chrome://extensions`
-- Enable **Developer mode**
-- Click **Load unpacked**
-- Select the folder: `contrast-heatmap/chrome-extension`
-
-### Use it
-
-- Start the Tauri app (so the server is running on `127.0.0.1:59212`)
-- Click the extension button
-  - It captures a **full-page** screenshot (scroll + stitch)
-  - Sends it to the local server
-  - Opens a new tab with the resulting heatmap image
