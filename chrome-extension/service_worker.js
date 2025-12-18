@@ -1,5 +1,21 @@
 const SERVER_URL = "http://127.0.0.1:59212/";
 
+async function checkServerHealthy() {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), 1200);
+  try {
+    const res = await fetch(SERVER_URL, { method: "GET", signal: ac.signal });
+    if (!res.ok) return { ok: false, reason: `HTTP ${res.status}` };
+    const text = (await res.text()).trim();
+    if (text !== "contrast-heatmap") return { ok: false, reason: `Unexpected response: ${text.slice(0, 200)}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: String(e) };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function ensureOffscreen() {
   const exists = await chrome.offscreen.hasDocument?.();
   if (exists) return;
@@ -117,19 +133,28 @@ async function openViewerWithBlob(blob) {
   await chrome.tabs.create({ url });
 }
 
+async function openViewerWithText(message) {
+  const dataUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(message)}`;
+  const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(dataUrl);
+  await chrome.tabs.create({ url });
+}
+
 chrome.action.onClicked.addListener(async (tab) => {
   try {
+    const health = await checkServerHealthy();
+    if (!health.ok) {
+      await openViewerWithText(
+        `You should open the Tauri app first.\n\nHealth check failed:\n${health.reason}\n\nExpected:\nGET ${SERVER_URL} -> contrast-heatmap`,
+      );
+      return;
+    }
+
     if (!tab?.id) throw new Error("No active tab.");
     const screenshotDataUrl = await captureFullPage(tab);
     const outBlob = await sendToServer(screenshotDataUrl);
     await openViewerWithBlob(outBlob);
   } catch (e) {
-    const msg = String(e);
-    const url =
-      chrome.runtime.getURL("viewer.html") +
-      "#" +
-      encodeURIComponent(`data:text/plain;charset=utf-8,${encodeURIComponent(msg)}`);
-    await chrome.tabs.create({ url });
+    await openViewerWithText(String(e));
   }
 });
 

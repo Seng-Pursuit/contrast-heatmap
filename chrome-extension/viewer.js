@@ -14,8 +14,15 @@ if (!hash) {
   showError("No image data provided.");
 } else {
   const dataUrl = decodeURIComponent(hash);
-  img.src = dataUrl;
-  dl.href = dataUrl;
+  if (dataUrl.startsWith("data:image/")) {
+    img.src = dataUrl;
+    dl.href = dataUrl;
+  } else if (dataUrl.startsWith("data:text/plain")) {
+    const text = decodeURIComponent(dataUrl.split(",", 2)[1] || "");
+    showError(text);
+  } else {
+    showError("Unsupported data type returned.");
+  }
 }
 
 

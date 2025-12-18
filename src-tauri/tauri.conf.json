@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "identifier": "com.contrastheatmap.desktop",
   "build": {
-    "beforeDevCommand": "node ../ui/build.mjs",
-    "beforeBuildCommand": "node ../ui/build.mjs",
+    "beforeDevCommand": "sh -c 'if [ -f build_frontend.mjs ]; then node build_frontend.mjs; elif [ -f src-tauri/build_frontend.mjs ]; then node src-tauri/build_frontend.mjs; elif [ -f ../src-tauri/build_frontend.mjs ]; then node ../src-tauri/build_frontend.mjs; else echo \"No build_frontend.mjs found; skipping frontend build\"; fi'",
+    "beforeBuildCommand": "sh -c 'if [ -f build_frontend.mjs ]; then node build_frontend.mjs; elif [ -f src-tauri/build_frontend.mjs ]; then node src-tauri/build_frontend.mjs; elif [ -f ../src-tauri/build_frontend.mjs ]; then node ../src-tauri/build_frontend.mjs; else echo \"No build_frontend.mjs found; skipping frontend build\"; fi'",
     "devUrl": null,
     "frontendDist": "../ui-dist"
   },
