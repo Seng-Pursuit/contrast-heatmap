@@ -22,10 +22,12 @@ pnpm-debug.log*
 dist/
 build/
 out/
+ui-dist/
 
 # --- Tauri (common generated artifacts) ---
 src-tauri/gen/
 src-tauri/.tauri/
+src-tauri/icons/icon.iconset/
 
 # --- Environment files / secrets ---
 .env

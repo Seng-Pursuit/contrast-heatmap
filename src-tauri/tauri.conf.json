@@ -1,12 +1,12 @@
 {
   "productName": "Contrast Heatmap",
   "version": "0.1.0",
-  "identifier": "com.contrastheatmap.app",
+  "identifier": "com.contrastheatmap.desktop",
   "build": {
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
+    "beforeDevCommand": "node ../ui/build.mjs",
+    "beforeBuildCommand": "node ../ui/build.mjs",
     "devUrl": null,
-    "frontendDist": "../ui"
+    "frontendDist": "../ui-dist"
   },
   "app": {
     "withGlobalTauri": true,
@@ -23,7 +23,8 @@
     }
   },
   "bundle": {
-    "active": false
+    "active": true,
+    "icon": ["icons/icon.icns", "icons/icon.png"]
   }
 }
 
