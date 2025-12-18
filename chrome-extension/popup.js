@@ -59,8 +59,7 @@ captureBtn.addEventListener("click", async () => {
       }
       if (msg?.type === "done") {
         setStatus("Opening result tab…");
-        const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(msg.dataUrl);
-        await chrome.tabs.create({ url });
+        await chrome.tabs.create({ url: msg.resultUrl });
         setStatus("Done. Opened result tab.");
         try {
           port.disconnect();

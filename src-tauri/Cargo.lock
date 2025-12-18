@@ -679,6 +679,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tokio",
  "tower-http",
+ "uuid",
 ]
 
 [[package]]

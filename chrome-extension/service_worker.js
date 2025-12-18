@@ -1,4 +1,5 @@
 const SERVER_URL = "http://127.0.0.1:59212/";
+const PROCESS_URL = "http://127.0.0.1:59212/process";
 
 async function checkServerHealthy() {
   const ac = new AbortController();
@@ -141,7 +142,7 @@ async function blobToDataUrl(blob) {
 
 async function sendToServer(pngDataUrl) {
   const blob = dataUrlToBlob(pngDataUrl);
-  const res = await fetch(SERVER_URL, {
+  const res = await fetch(PROCESS_URL, {
     method: "POST",
     headers: { "Content-Type": "image/png" },
     body: blob,
@@ -150,7 +151,9 @@ async function sendToServer(pngDataUrl) {
     const t = await res.text().catch(() => "");
     throw new Error(`server error ${res.status}: ${t}`);
   }
-  return res.blob();
+  const data = await res.json();
+  if (!data?.url) throw new Error("server returned no result url");
+  return data.url;
 }
 
 async function openViewerWithBlob(blob) {
@@ -187,9 +190,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (!tab?.id) throw new Error("No active tab.");
 
       const screenshotDataUrl = await captureFullPage(tab);
-      const outBlob = await sendToServer(screenshotDataUrl);
-      const outDataUrl = await blobToDataUrl(outBlob);
-      sendResponse({ ok: true, dataUrl: outDataUrl });
+    const resultUrl = await sendToServer(screenshotDataUrl);
+    sendResponse({ ok: true, resultUrl });
       return;
     }
   })().catch((e) => {
@@ -231,13 +233,11 @@ chrome.runtime.onConnect.addListener((port) => {
     if (cancelled) return;
     port.postMessage({ type: "stage", stage: "processing", message: "Processing image…" });
 
-    const outBlob = await sendToServer(screenshotDataUrl);
+    const resultUrl = await sendToServer(screenshotDataUrl);
 
     if (cancelled) return;
-    port.postMessage({ type: "stage", stage: "opening", message: "Preparing result…" });
-
-    const outDataUrl = await blobToDataUrl(outBlob);
-    port.postMessage({ type: "done", dataUrl: outDataUrl });
+    port.postMessage({ type: "stage", stage: "opening", message: "Opening result…" });
+    port.postMessage({ type: "done", resultUrl });
   })().catch((e) => {
     try {
       port.postMessage({ type: "error", error: String(e?.message || e) });
