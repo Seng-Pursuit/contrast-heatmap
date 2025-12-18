@@ -37,20 +37,39 @@ async function run() {
 
 captureBtn.addEventListener("click", async () => {
   setLoading(true);
-  setStatus("Loading… capturing full page, processing, and opening result tab…");
+  setStatus("Capturing full page…");
 
-  const resp = await chrome.runtime.sendMessage({ type: "CAPTURE_ANALYZE" });
-  if (!resp?.ok) {
-    setStatus(resp?.error || "Unknown error");
-    setLoading(false);
-    return;
-  }
+  const port = chrome.runtime.connect({ name: "CAPTURE_ANALYZE_PROGRESS" });
 
-  // Only open once we have the processed image data URL.
-  const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(resp.dataUrl);
-  await chrome.tabs.create({ url });
+  // We'll keep listening until done/error.
+  await new Promise((resolve) => {
+    port.onMessage.addListener(async (msg) => {
+      if (msg?.type === "stage") {
+        setStatus(msg.message || "Working…");
+        return;
+      }
+      if (msg?.type === "error") {
+        setStatus(msg.error || "Unknown error");
+        setLoading(false);
+        try {
+          port.disconnect();
+        } catch {}
+        resolve();
+        return;
+      }
+      if (msg?.type === "done") {
+        setStatus("Opening result tab…");
+        const url = chrome.runtime.getURL("viewer.html") + "#" + encodeURIComponent(msg.dataUrl);
+        await chrome.tabs.create({ url });
+        setStatus("Done. Opened result tab.");
+        try {
+          port.disconnect();
+        } catch {}
+        resolve();
+      }
+    });
+  });
 
-  setStatus("Done. Opened result tab.");
   // Keep disabled to prevent quota issues from repeated clicks.
   captureBtn.disabled = true;
   captureBtn.textContent = "Done";

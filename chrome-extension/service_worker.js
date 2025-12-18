@@ -2,7 +2,7 @@ const SERVER_URL = "http://127.0.0.1:59212/";
 
 async function checkServerHealthy() {
   const ac = new AbortController();
-  const t = setTimeout(() => ac.abort(), 1200);
+  const t = setTimeout(() => ac.abort(), 800);
   try {
     const res = await fetch(SERVER_URL, { method: "GET", signal: ac.signal });
     if (!res.ok) return { ok: false, reason: `HTTP ${res.status}` };
@@ -30,16 +30,24 @@ async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+let lastCaptureAt = 0;
+
 async function captureVisibleTabPng(windowId) {
-  // Respect Chrome's quota. One capture per ~second is safe.
-  // If quota is still hit, back off and retry.
+  // Respect Chrome's quota: keep captures spaced out, but don't add extra delays.
+  const minIntervalMs = 1050;
+  const now = Date.now();
+  const wait = lastCaptureAt + minIntervalMs - now;
+  if (wait > 0) await sleep(wait);
+
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      return await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+      const dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+      lastCaptureAt = Date.now();
+      return dataUrl;
     } catch (e) {
       const msg = String(e?.message || e);
       if (msg.includes("MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND")) {
-        await sleep(1200 + attempt * 300);
+        await sleep(400 + attempt * 250);
         continue;
       }
       throw e;
@@ -82,11 +90,9 @@ async function captureFullPage(tab) {
   const tiles = [];
   for (let y = 0; y < m.fullHeight; y += m.viewportHeight) {
     await scrollToY(tabId, y);
-    await sleep(250);
+    await sleep(80);
     const dataUrl = await captureVisibleTabPng(windowId);
     tiles.push({ y, dataUrl });
-    // Extra delay to avoid quota bursts.
-    await sleep(1100);
   }
 
   // Restore scroll position
@@ -191,6 +197,54 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   });
 
   return true; // async
+});
+
+// Streaming progress updates for the popup UI.
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== "CAPTURE_ANALYZE_PROGRESS") return;
+
+  let cancelled = false;
+  port.onDisconnect.addListener(() => {
+    cancelled = true;
+  });
+
+  (async () => {
+    port.postMessage({ type: "stage", stage: "checking", message: "Checking local server…" });
+    const health = await checkServerHealthy();
+    if (!health.ok) {
+      port.postMessage({
+        type: "error",
+        error:
+          `You should open the Tauri app first.\n\nHealth check failed:\n${health.reason}\n\nExpected:\nGET ${SERVER_URL} -> contrast-heatmap`,
+      });
+      return;
+    }
+
+    if (cancelled) return;
+    port.postMessage({ type: "stage", stage: "capturing", message: "Capturing full page…" });
+
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tab?.id) throw new Error("No active tab.");
+
+    const screenshotDataUrl = await captureFullPage(tab);
+
+    if (cancelled) return;
+    port.postMessage({ type: "stage", stage: "processing", message: "Processing image…" });
+
+    const outBlob = await sendToServer(screenshotDataUrl);
+
+    if (cancelled) return;
+    port.postMessage({ type: "stage", stage: "opening", message: "Preparing result…" });
+
+    const outDataUrl = await blobToDataUrl(outBlob);
+    port.postMessage({ type: "done", dataUrl: outDataUrl });
+  })().catch((e) => {
+    try {
+      port.postMessage({ type: "error", error: String(e?.message || e) });
+    } catch {
+      // ignore
+    }
+  });
 });
 
 
