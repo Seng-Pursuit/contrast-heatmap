@@ -285,6 +285,7 @@ dependencies = [
  "anyhow",
  "clap",
  "image",
+ "rayon",
 ]
 
 [[package]]

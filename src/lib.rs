@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use image::{ImageBuffer, Rgba, RgbaImage};
+use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 
 // --- WCAG contrast helpers ---
@@ -112,6 +113,17 @@ impl Default for HeatmapParams {
 fn generate_heatmap_png_from_rgba(original: RgbaImage, params: HeatmapParams) -> Result<Vec<u8>> {
     let (w, h) = original.dimensions();
 
+    // Precompute neighbor offsets once (radius=3 => 7x7 minus center => 48 offsets).
+    let mut offsets: Vec<(i32, i32)> = Vec::new();
+    for dy in -params.radius..=params.radius {
+        for dx in -params.radius..=params.radius {
+            if dx == 0 && dy == 0 {
+                continue;
+            }
+            offsets.push((dx, dy));
+        }
+    }
+
     // Sharpened image used ONLY for analysis
     let sharpen_kernel: [[f32; 3]; 3] = [
         [0.0023, -0.0432, 0.0023],
@@ -131,67 +143,78 @@ fn generate_heatmap_png_from_rgba(original: RgbaImage, params: HeatmapParams) ->
         }
     }
 
-    // Create overlay output (start as original)
-    let mut overlay = original;
+    // Compute output pixels in parallel.
+    // This preserves exact output because each output pixel is derived from:
+    // - the original pixel at (x,y)
+    // - the luma field (precomputed from analysis_img)
+    // and does NOT depend on other output pixels.
+    let original_raw = original.as_raw();
+    let mut out_raw: Vec<u8> = vec![0u8; (w * h * 4) as usize];
 
-    for y in 0..h {
-        for x in 0..w {
-            let center_l = luma[idx(x, y)];
-            let mut count: u32 = 0;
+    out_raw
+        .par_chunks_mut((w as usize) * 4)
+        .enumerate()
+        .for_each(|(y_usize, row)| {
+            let y = y_usize as u32;
+            for x in 0..w {
+                let i = ((y * w + x) * 4) as usize;
+                let base_r = original_raw[i];
+                let base_g = original_raw[i + 1];
+                let base_b = original_raw[i + 2];
+                let base_a = original_raw[i + 3];
 
-            for dy in -params.radius..=params.radius {
-                for dx in -params.radius..=params.radius {
-                    if dx == 0 && dy == 0 {
-                        continue;
-                    }
+                let center_l = luma[(y * w + x) as usize];
+                let mut count: u32 = 0;
 
-                    let nx_i = x as i32 + dx;
-                    let ny_i = y as i32 + dy;
-
+                for (dx, dy) in &offsets {
+                    let nx_i = x as i32 + *dx;
+                    let ny_i = y as i32 + *dy;
                     if nx_i < 0 || ny_i < 0 || nx_i >= w as i32 || ny_i >= h as i32 {
                         continue;
                     }
-
                     let nx = nx_i as u32;
                     let ny = ny_i as u32;
 
-                    let neighbor_l = luma[idx(nx, ny)];
-
-                    // Exclude identical luminance (matches previous behavior)
+                    let neighbor_l = luma[(ny * w + nx) as usize];
                     if neighbor_l == center_l {
                         continue;
                     }
-
                     let ratio = contrast_ratio_from_luma(center_l, neighbor_l);
                     if ratio <= params.threshold {
                         count += 1;
                     }
                 }
+
+                // Default: copy original
+                let mut r_out = base_r;
+                let mut g_out = base_g;
+                let mut b_out = base_b;
+
+                if count != 0 {
+                    let multiplier: f32 = if count > 25 { 0.02 } else { 0.0052 };
+                    let alpha_f = (255.0 * multiplier * (count as f32)).round();
+                    let alpha = alpha_f.clamp(0.0, 255.0) as u8;
+                    if alpha != 0 {
+                        let a = (alpha as f32) / 255.0;
+                        r_out =
+                            (base_r as f32 * (1.0 - a) + params.heat_r as f32 * a).round() as u8;
+                        g_out =
+                            (base_g as f32 * (1.0 - a) + params.heat_g as f32 * a).round() as u8;
+                        b_out =
+                            (base_b as f32 * (1.0 - a) + params.heat_b as f32 * a).round() as u8;
+                    }
+                }
+
+                let row_i = (x as usize) * 4;
+                row[row_i] = r_out;
+                row[row_i + 1] = g_out;
+                row[row_i + 2] = b_out;
+                row[row_i + 3] = base_a;
             }
+        });
 
-            if count == 0 {
-                continue;
-            }
-
-            // Alpha scaling logic
-            let multiplier: f32 = if count > 25 { 0.02 } else { 0.0052 };
-            let alpha_f = (255.0 * multiplier * (count as f32)).round();
-            let alpha = alpha_f.clamp(0.0, 255.0) as u8;
-            if alpha == 0 {
-                continue;
-            }
-
-            // Blend heatmap (source) over original (dest)
-            let base = overlay.get_pixel(x, y).0;
-            let a = (alpha as f32) / 255.0;
-
-            let r = (base[0] as f32 * (1.0 - a) + params.heat_r as f32 * a).round() as u8;
-            let g = (base[1] as f32 * (1.0 - a) + params.heat_g as f32 * a).round() as u8;
-            let b = (base[2] as f32 * (1.0 - a) + params.heat_b as f32 * a).round() as u8;
-
-            overlay.put_pixel(x, y, Rgba([r, g, b, base[3]]));
-        }
-    }
+    let overlay: RgbaImage =
+        ImageBuffer::from_vec(w, h, out_raw).context("Failed to build output image buffer")?;
 
     let mut out: Vec<u8> = Vec::new();
     let dynimg = image::DynamicImage::ImageRgba8(overlay);
