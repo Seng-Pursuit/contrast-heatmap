@@ -1,5 +1,7 @@
 # Contrast-heatmap
 
+Written in Rust based on Libby's original JS implementation.
+
 Generate a “low-contrast heatmap” overlay for images (Rust). Includes:
 - **CLI** (`contrast-heatmap`)
 - **Desktop app** (Tauri + Preact UI)
@@ -12,6 +14,12 @@ Generate a “low-contrast heatmap” overlay for images (Rust). Includes:
 
 This repo also ships a CLI tool:
 
+Install:
+```base
+cargo install --path . --force
+```
+
+Usage
 ```bash
 contrast-heatmap --input "path-to-your-image.png"
 ```
