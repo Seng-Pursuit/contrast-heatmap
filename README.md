@@ -6,7 +6,7 @@ Generate a “low-contrast heatmap” overlay for images (Rust). Includes:
 - **Local HTTP server** (for the Chrome extension)
 - **Chrome extension** (captures a page screenshot, sends to local server, opens the result)
 
-## How to use
+## How to dev
 
 ### CLI
 
@@ -21,8 +21,9 @@ contrast-heatmap --input "path-to-your-image.png"
 1. Start the Tauri app (this also starts the local server):
 
 ```bash
+cd src-tauri
 cargo install tauri-cli --locked
-cargo tauri dev -- --manifest-path src-tauri/Cargo.toml
+cargo tauri dev
 ```
 
 2. Load the extension:
@@ -40,43 +41,11 @@ cargo tauri dev -- --manifest-path src-tauri/Cargo.toml
 From the repo root:
 
 ```bash
-cd ui
-npm install
-cd ..
-
+cd src-tauri
 cargo install tauri-cli --locked
-cargo tauri build -- --manifest-path src-tauri/Cargo.toml
+cargo tauri build
 ```
 
 Build outputs:
 - **.app**: `src-tauri/target/release/bundle/macos/Contrast Heatmap.app`
 - **.dmg**: `src-tauri/target/release/bundle/dmg/Contrast Heatmap_0.1.0_aarch64.dmg` (name may vary by arch/version)
-
-## Dev guide
-
-### Tauri app (dev)
-
-```bash
-cd ui
-npm install
-cd ..
-
-cargo install tauri-cli --locked
-cargo tauri dev -- --manifest-path src-tauri/Cargo.toml
-```
-
-### Local HTTP server (for integrations)
-
-When the Tauri app is running, it also starts a server on `127.0.0.1:59212`:
-- `GET /` → returns `contrast-heatmap`
-- `POST /` → accepts an image body and returns a PNG with the heatmap overlay
-
-```bash
-curl -s http://127.0.0.1:59212/
-
-curl -s -X POST \
-  -H "Content-Type: image/png" \
-  --data-binary @input.png \
-  http://127.0.0.1:59212/ \
-  > output.png
-```
