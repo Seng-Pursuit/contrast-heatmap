@@ -30,6 +30,24 @@ async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+async function captureVisibleTabPng(windowId) {
+  // Respect Chrome's quota. One capture per ~second is safe.
+  // If quota is still hit, back off and retry.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      return await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+    } catch (e) {
+      const msg = String(e?.message || e);
+      if (msg.includes("MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND")) {
+        await sleep(1200 + attempt * 300);
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error("Capture rate limited: MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND");
+}
+
 async function exec(tabId, func, args = []) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId },
@@ -65,8 +83,10 @@ async function captureFullPage(tab) {
   for (let y = 0; y < m.fullHeight; y += m.viewportHeight) {
     await scrollToY(tabId, y);
     await sleep(250);
-    const dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+    const dataUrl = await captureVisibleTabPng(windowId);
     tiles.push({ y, dataUrl });
+    // Extra delay to avoid quota bursts.
+    await sleep(1100);
   }
 
   // Restore scroll position
@@ -139,23 +159,38 @@ async function openViewerWithText(message) {
   await chrome.tabs.create({ url });
 }
 
-chrome.action.onClicked.addListener(async (tab) => {
-  try {
-    const health = await checkServerHealthy();
-    if (!health.ok) {
-      await openViewerWithText(
-        `You should open the Tauri app first.\n\nHealth check failed:\n${health.reason}\n\nExpected:\nGET ${SERVER_URL} -> contrast-heatmap`,
-      );
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  (async () => {
+    if (msg?.type === "CHECK_SERVER") {
+      sendResponse(await checkServerHealthy());
       return;
     }
 
-    if (!tab?.id) throw new Error("No active tab.");
-    const screenshotDataUrl = await captureFullPage(tab);
-    const outBlob = await sendToServer(screenshotDataUrl);
-    await openViewerWithBlob(outBlob);
-  } catch (e) {
-    await openViewerWithText(String(e));
-  }
+    if (msg?.type === "CAPTURE_ANALYZE") {
+      const health = await checkServerHealthy();
+      if (!health.ok) {
+        sendResponse({
+          ok: false,
+          error:
+            `You should open the Tauri app first.\n\nHealth check failed:\n${health.reason}\n\nExpected:\nGET ${SERVER_URL} -> contrast-heatmap`,
+        });
+        return;
+      }
+
+      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      if (!tab?.id) throw new Error("No active tab.");
+
+      const screenshotDataUrl = await captureFullPage(tab);
+      const outBlob = await sendToServer(screenshotDataUrl);
+      const outDataUrl = await blobToDataUrl(outBlob);
+      sendResponse({ ok: true, dataUrl: outDataUrl });
+      return;
+    }
+  })().catch((e) => {
+    sendResponse({ ok: false, error: String(e?.message || e) });
+  });
+
+  return true; // async
 });
 
 

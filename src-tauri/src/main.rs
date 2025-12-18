@@ -3,6 +3,7 @@
 use anyhow::Result;
 use axum::{
     body::Bytes,
+    extract::DefaultBodyLimit,
     http::{HeaderValue, Method, StatusCode},
     response::IntoResponse,
     routing::get,
@@ -54,6 +55,8 @@ fn start_local_server() {
 
         let app = Router::new()
             .route("/", get(get_root).post(post_root))
+            // Full-page PNGs can be large; bump body limit above Axum defaults.
+            .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
             .layer(cors);
 
         let listener = match tokio::net::TcpListener::bind("127.0.0.1:59212").await {
