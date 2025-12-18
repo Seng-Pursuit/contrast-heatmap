@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "identifier": "com.contrastheatmap.desktop",
   "build": {
-    "beforeDevCommand": "sh -c 'if [ -f build_frontend.mjs ]; then node build_frontend.mjs; elif [ -f src-tauri/build_frontend.mjs ]; then node src-tauri/build_frontend.mjs; elif [ -f ../src-tauri/build_frontend.mjs ]; then node ../src-tauri/build_frontend.mjs; else echo \"No build_frontend.mjs found; skipping frontend build\"; fi'",
-    "beforeBuildCommand": "sh -c 'if [ -f build_frontend.mjs ]; then node build_frontend.mjs; elif [ -f src-tauri/build_frontend.mjs ]; then node src-tauri/build_frontend.mjs; elif [ -f ../src-tauri/build_frontend.mjs ]; then node ../src-tauri/build_frontend.mjs; else echo \"No build_frontend.mjs found; skipping frontend build\"; fi'",
-    "devUrl": null,
-    "frontendDist": "../ui-dist"
+    "beforeDevCommand": "sh -c 'cd ui 2>/dev/null || cd ../ui; npm run dev -- --host 127.0.0.1 --port 5173'",
+    "beforeBuildCommand": "sh -c 'cd ui 2>/dev/null || cd ../ui; npm run build'",
+    "devUrl": "http://127.0.0.1:5173",
+    "frontendDist": "../ui/dist"
   },
   "app": {
     "withGlobalTauri": true,
