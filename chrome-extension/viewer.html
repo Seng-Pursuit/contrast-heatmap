@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contrast Heatmap Result</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: #0b0d10;
+        color: rgba(255, 255, 255, 0.92);
+      }
+      header {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      header .title {
+        font-weight: 700;
+      }
+      header a {
+        color: rgba(255, 255, 255, 0.82);
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      main {
+        padding: 12px;
+      }
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .error {
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="title">Contrast Heatmap Result</div>
+      <a id="download" download="contrast-heatmap.png" href="#">Download PNG</a>
+    </header>
+    <main>
+      <img id="img" alt="Heatmap result" />
+      <div id="err" class="error" style="display: none"></div>
+    </main>
+    <script type="module" src="./viewer.js"></script>
+  </body>
+</html>
+
+

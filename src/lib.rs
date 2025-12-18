@@ -109,13 +109,7 @@ impl Default for HeatmapParams {
     }
 }
 
-/// Generate the heatmap image and return it as PNG bytes.
-pub fn generate_heatmap_png_bytes(input: &Path, params: HeatmapParams) -> Result<Vec<u8>> {
-    // Load original image (this is what we'll overlay onto)
-    let original = image::open(input)
-        .with_context(|| format!("Failed to open input image: {}", input.display()))?
-        .to_rgba8();
-
+fn generate_heatmap_png_from_rgba(original: RgbaImage, params: HeatmapParams) -> Result<Vec<u8>> {
     let (w, h) = original.dimensions();
 
     // Sharpened image used ONLY for analysis
@@ -138,7 +132,7 @@ pub fn generate_heatmap_png_bytes(input: &Path, params: HeatmapParams) -> Result
     }
 
     // Create overlay output (start as original)
-    let mut overlay = original.clone();
+    let mut overlay = original;
 
     for y in 0..h {
         for x in 0..w {
@@ -206,6 +200,27 @@ pub fn generate_heatmap_png_bytes(input: &Path, params: HeatmapParams) -> Result
         .context("Failed to encode output PNG")?;
 
     Ok(out)
+}
+
+/// Generate the heatmap image and return it as PNG bytes.
+pub fn generate_heatmap_png_bytes(input: &Path, params: HeatmapParams) -> Result<Vec<u8>> {
+    // Load original image (this is what we'll overlay onto)
+    let original = image::open(input)
+        .with_context(|| format!("Failed to open input image: {}", input.display()))?
+        .to_rgba8();
+
+    generate_heatmap_png_from_rgba(original, params)
+}
+
+/// Generate the heatmap image from encoded image bytes (png/jpg/webp/etc) and return it as PNG bytes.
+pub fn generate_heatmap_png_from_encoded_bytes(
+    input: &[u8],
+    params: HeatmapParams,
+) -> Result<Vec<u8>> {
+    let original = image::load_from_memory(input)
+        .context("Failed to decode input bytes as an image")?
+        .to_rgba8();
+    generate_heatmap_png_from_rgba(original, params)
 }
 
 
