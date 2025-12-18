@@ -28,6 +28,8 @@ ui-dist/
 src-tauri/gen/
 src-tauri/.tauri/
 src-tauri/icons/icon.iconset/
+!src-tauri/icons/icon.png
+!src-tauri/icons/icon.icns
 
 # --- Environment files / secrets ---
 .env
@@ -40,7 +42,9 @@ src-tauri/icons/icon.iconset/
 .LSOverride
 Thumbs.db
 ehthumbs.db
-Icon?
+# NOTE: Finder's special file is "Icon\r" (carriage return). A broad `Icon?` pattern can
+# accidentally ignore real files like `icon.png`, so we avoid it.
+# Icon?
 ._*
 .idea/
 .vscode/
