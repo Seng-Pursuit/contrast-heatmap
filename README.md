@@ -34,6 +34,10 @@ cargo install tauri-cli --locked
 cargo tauri dev
 ```
 
+Having the tauri app running in the dev mode is significantly slower than runningin the build mode.
+This is only suitable for dev.
+Use the compiled app when you actually want to use it.
+
 2. Load the extension:
 - Open `chrome://extensions`
 - Enable **Developer mode**
